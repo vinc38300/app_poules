@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrôle Poulailler v1.0</title>
+    <script type="text/javascript" src="cordova.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 1.8em;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+        }
+        
+        .section h2 {
+            color: #2196F3;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+        
+        .connection-status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            width: 100%;
+        }
+        
+        .connected {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .disconnected {
+            background: #f44336;
+            color: white;
+        }
+        
+        .syncing {
+            background: #ff9800;
+            color: white;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            border: none;
+            color: white;
+            padding: 12px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            min-width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .btn-on {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+        
+        .btn-off {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+        }
+        
+        .btn-auto {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+        }
+        
+        .btn-active-on {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+            border: 2px solid #4CAF50;
+            transform: scale(1.05);
+        }
+        
+        .btn-active-off {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            box-shadow: 0 0 15px rgba(244, 67, 54, 0.6);
+            border: 2px solid #f44336;
+            transform: scale(1.05);
+        }
+        
+        .btn-active-auto {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            box-shadow: 0 0 15px rgba(255, 152, 0, 0.6);
+            border: 2px solid #ff9800;
+            transform: scale(1.05);
+        }
+        
+        .btn-inactive {
+            background: linear-gradient(45deg, #9e9e9e, #757575);
+            opacity: 0.6;
+            transform: scale(0.95);
+        }
+        
+        input[type="text"], input[type="number"], input[type="time"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            border-color: #2196F3;
+            outline: none;
+        }
+        
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 0.9em;
+        }
+        
+        .status-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .relay-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            border: 1px solid #2196F3;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .status-indicator {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        
+        .status-on {
+            background: #4CAF50;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-off {
+            background: #ccc;
+            border: 2px solid #999;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(76, 175, 80, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.5); }
+        }
+        
+        .log {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            border-radius: 8px;
+            height: 120px;
+            overflow-y: scroll;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .time-sync-section {
+            text-align: center;
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+        }
+        
+        .current-time {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+            margin: 15px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .timing-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .timing-valid {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .timing-error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        
+        .next-action {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+            font-size: 14px;
+        }
+        
+        .relay-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 20px 0;
+        }
+        
+        .relay-controls button {
+            padding: 15px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            width: 100%;
+            margin: 0;
+            min-height: 50px;
+        }
+        
+        .mode-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        
+        .mode-auto {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .mode-manual {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .program-button {
+            background: linear-gradient(45deg, #9c27b0, #673ab7);
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .quick-actions {
+            background: linear-gradient(45deg, #607d8b, #455a64);
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .quick-actions h2 {
+            color: white;
+        }
+        
+        .quick-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 15px 0;
+        }
+        
+        .quick-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 13px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .quick-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        /* Responsive pour très petits écrans */
+        @media (max-width: 400px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .section {
+                padding: 12px;
+            }
+            
+            .section h2 {
+                font-size: 1.1em;
+            }
+            
+            .current-time {
+                font-size: 20px;
+            }
+            
+            .time-inputs {
+                grid-template-columns: 1fr;
+            }
+            
+            .relay-status {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .log {
+                height: 100px;
+                font-size: 10px;
+            }
+        }
+        
+        @media (max-width: 350px) {
+            .quick-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-button {
+                min-height: 50px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎛️ Contrôle Poulailler v1.0</h1>
+        
+        <div id="connectionStatus" class="connection-status disconnected">
+            📡 Déconnecté - Cliquez pour vous connecter
+        </div>
+        
+        <div class="section">
+            <button onclick="connectToBLE()" id="connectBtn">🔵 Se connecter à l'ESP32</button>
+            <button onclick="syncTime()" id="syncBtn" style="display:none;" class="btn-auto">⏰ Synchroniser l'heure</button>
+        </div>
+        
+        <div class="section time-sync-section">
+            <h2>⏰ Heure Française</h2>
+            <div class="current-time" id="currentTime">Non synchronisée</div>
+            <p id="syncStatus">En attente de synchronisation</p>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="section quick-actions" id="quickSection" style="display:none;">
+            <h2>⚡ Actions Rapides</h2>
+            <div class="quick-grid">
+                <button class="quick-button" onclick="emergencyStop()">
+                    🛑 Arrêt d'urgence
+                </button>
+                <button class="quick-button" onclick="feedNow()">
+                    🌾 Distribution immédiate
+                </button>
+                <button class="quick-button" onclick="openDoorNow()">
+                    🚪 Ouvrir porte
+                </button>
+                <button class="quick-button" onclick="closeDoorNow()">
+                    🔒 Fermer porte
+                </button>
+            </div>
+        </div>
+        
+        <!-- Distribution de grain -->
+        <div class="section" id="grainSection" style="display:none;">
+            <h2>🌾 Distribution de Grain</h2>
+            
+            <div class="relay-status">
+                <div class="status-info">
+                    <span>État: <strong id="relay1Status">OFF</strong></span>
+                    <span class="mode-indicator mode-auto" id="relay1Mode">AUTO</span>
+                </div>
+                <span class="status-indicator status-off" id="relay1Indicator"></span>
+            </div>
+            
+            <div class="next-action" id="nextGrainAction">
+                Prochaine action: -
+            </div>
+            
+            <div class="relay-controls">
+                <button onclick="controlRelay(1, true)" id="grain-on-btn" class="btn-on">
+                    🟢 ON - Manuel
+                </button>
+                <button onclick="controlRelay(1, false)" id="grain-off-btn" class="btn-off">
+                    🔴 OFF - Manuel
+                </button>
+                <button onclick="setAutoMode(1)" id="grain-auto-btn" class="btn-auto">
+                    🔄 AUTO - Programmé
+                </button>
+            </div>
+            
+            <div class="time-inputs">
+                <div class="input-group">
+                    <label>Heure de début:</label>
+                    <input type="time" id="startTime1" value="08:00">
+                </div>
+                <div class="input-group">
+                    <label>Durée (minutes):</label>
+                    <input type="number" id="duration1" placeholder="Durée en minutes" min="1" max="360" value="20">
+                </div>
+            </div>
+            
+            <div class="timing-display" id="timing1Display">
+                <div id="timing1Validation"></div>
+            </div>
+            
+            <button onclick="programRelay1()" class="program-button">
+                📅 Programmer Distribution
+            </button>
+            
+            <div class="status-display">
+                <strong>Programmation active:</strong><br>
+                <span id="relay1ActiveTime">Non définie</span>
+            </div>
+        </div>
+        
+        <!-- Ouverture de porte -->
+        <div class="section" id="doorSection" style="display:none;">
+            <h2>🚪 Ouverture de la Porte</h2>
+            
+            <div class="relay-status">
+                <div class="status-info">
+                    <span>État: <strong id="relay2Status">OFF</strong></span>
+                    <span class="mode-indicator mode-auto" id="relay2Mode">AUTO</span>
+                </div>
+                <span class="status-indicator status-off" id="relay2Indicator"></span>
+            </div>
+            
+            <div class="next-action" id="nextDoorAction">
+                Prochaine action: -
+            </div>
+            
+            <div class="relay-controls">
+                <button onclick="controlRelay(2, true)" id="door-on-btn" class="btn-on">
+                    🟢 OUVRIR - Manuel
+                </button>
+                <button onclick="controlRelay(2, false)" id="door-off-btn" class="btn-off">
+                    🔴 FERMER - Manuel
+                </button>
+                <button onclick="setAutoMode(2)" id="door-auto-btn" class="btn-auto">
+                    🔄 AUTO - Programmé
+                </button>
+            </div>
+            
+            <div class="time-inputs">
+                <div class="input-group">
+                    <label>Heure d'ouverture:</label>
+                    <input type="time" id="startTime2" value="07:00">
+                </div>
+                <div class="input-group">
+                    <label>Heure de fermeture:</label>
+                    <input type="time" id="stopTime2" value="21:00">
+                </div>
+            </div>
+            
+            <div class="timing-display" id="timing2Display">
+                <div id="timing2Validation"></div>
+            </div>
+            
+            <button onclick="programRelay2()" class="program-button">
+                📅 Programmer Ouverture
+            </button>
+            
+            <div class="status-display">
+                <strong>Programmation active:</strong><br>
+                <span id="relay2ActiveTime">Non définie</span>
+            </div>
+        </div>
+        
+        <div class="log" id="log">
+            <strong>📋 Console de logs:</strong><br>
+        </div>
+    </div>
+
+    <script>
+        var deviceId;
+        var isConnected = false;
+        var servicesReady = false;
+        var serviceUUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+        var characteristicUUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+        var timeCharacteristicUUID = "123e4567-e89b-12d3-a456-426614174000";
+        var relay1TimeUUID = "5a786b5e-1234-5678-9abc-def012345678";
+        var relay2TimeUUID = "6b897c6f-2345-6789-abcd-ef0123456789";
+
+        // Variables pour suivre l'état des modes et des relais
+        var relay1ManualMode = false;
+        var relay2ManualMode = false;
+        var relay1State = false;
+        var relay2State = false;
+
+        document.addEventListener('deviceready', onDeviceReady, false);
+
+        function log(message) {
+            var timestamp = new Date().toLocaleTimeString();
+            document.getElementById('log').innerHTML += `[${timestamp}] ${message}<br>`;
+            document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
+        }
+
+        function updateConnectionStatus(status, message) {
+            var statusEl = document.getElementById('connectionStatus');
+            statusEl.className = `connection-status ${status}`;
+            statusEl.innerHTML = message;
+        }
+
+        function onDeviceReady() {
+            log('📱 Application Contrôle Poulailler prête - Version 1.0');
+            
+            // Initialiser la validation des horaires
+            setTimeout(() => {
+                validateTiming1();
+                validateTiming2();
+                updateNextAction();
+            }, 1000);
+
+            // Mise à jour des prochaines actions toutes les minutes
+            setInterval(updateNextAction, 60000);
+        }
+
+        function connectToBLE() {
+            log('🔍 Début du scan BLE...');
+            updateConnectionStatus('syncing', '🔍 Recherche de l\'ESP32...');
+            
+            ble.scan([], 15, function(device) {
+                log(`📡 Périphérique trouvé: ${device.name || 'Inconnu'} (${device.id})`);
+                if (device.name === "ESP32-Relay-Controller" || device.name === "ESP32-BLE" || device.name === "ESP32") {
+                    deviceId = device.id;
+                    log('🔗 Connexion à l\'ESP32...');
+                    updateConnectionStatus('syncing', '🔗 Connexion en cours...');
+                    ble.connect(device.id, onConnect, onDisconnect);
+                }
+            }, function(error) {
+                log("❌ Erreur lors du scan: " + error);
+                updateConnectionStatus('disconnected', '❌ Erreur de scan - Réessayez');
+            });
+        }
+
+        function onConnect() {
+            isConnected = true;
+            servicesReady = false;
+            log("✅ Connecté à l'ESP32");
+            updateConnectionStatus('syncing', '🔄 Découverte des services...');
+            
+            document.getElementById('connectBtn').style.display = 'none';
+            document.getElementById('syncBtn').style.display = 'inline-block';
+
+            log("⏳ Attente de découverte des services (2s)...");
+            setTimeout(function() {
+                setupNotifications();
+            }, 2000);
+        }
+
+        function setupNotifications() {
+            log("🔧 Configuration des notifications...");
+            var successCount = 0;
+            var expectedCount = 3;
+            
+            function checkAllReady() {
+                successCount++;
+                log(`✅ Service ${successCount}/${expectedCount} prêt`);
+                if (successCount >= expectedCount) {
+                    servicesReady = true;
+                    updateConnectionStatus('connected', '✅ Connecté à l\'ESP32 - Prêt');
+                    log("✅ Tous les services sont prêts");
+                    
+                    // Afficher toutes les sections
+                    document.getElementById('quickSection').style.display = 'block';
+                    document.getElementById('grainSection').style.display = 'block';
+                    document.getElementById('doorSection').style.display = 'block';
+                    
+                    // Synchroniser l'heure automatiquement
+                    setTimeout(syncTime, 500);
+                    
+                    // Demander les états actuels
+                    setTimeout(function() {
+                        requestCurrentStates();
+                    }, 1000);
+                }
+            }
+            
+            setTimeout(function() {
+                ble.startNotification(deviceId, serviceUUID, timeCharacteristicUUID, onTimeUpdate, function(error) {
+                    log("⚠️ Erreur notifications temps: " + error);
+                });
+                checkAllReady();
+            }, 100);
+            
+            setTimeout(function() {
+                ble.startNotification(deviceId, serviceUUID, relay1TimeUUID, onRelay1TimeUpdate, function(error) {
+                    log("⚠️ Erreur notifications grain: " + error);
+                });
+                checkAllReady();
+            }, 300);
+            
+            setTimeout(function() {
+                ble.startNotification(deviceId, serviceUUID, relay2TimeUUID, onRelay2TimeUpdate, function(error) {
+                    log("⚠️ Erreur notifications porte: " + error);
+                });
+                checkAllReady();
+            }, 500);
+        }
+
+        function requestCurrentStates() {
+            if (!isConnected || !servicesReady) return;
+            
+            log("📊 Demande des états actuels...");
+            
+            ble.read(deviceId, serviceUUID, relay1TimeUUID, function(data) {
+                onRelay1TimeUpdate(data);
+            }, function(error) {
+                log("❌ Erreur lecture état grain: " + error);
+            });
+            
+            setTimeout(function() {
+                ble.read(deviceId, serviceUUID, relay2TimeUUID, function(data) {
+                    onRelay2TimeUpdate(data);
+                }, function(error) {
+                    log("❌ Erreur lecture état porte: " + error);
+                });
+            }, 200);
+        }
+
+        function onDisconnect() {
+            isConnected = false;
+            servicesReady = false;
+            log("⚠️ Déconnecté de l'ESP32");
+            updateConnectionStatus('disconnected', '⚠️ Déconnecté - Reconnectez-vous');
+            
+            document.getElementById('connectBtn').style.display = 'inline-block';
+            document.getElementById('syncBtn').style.display = 'none';
+            document.getElementById('quickSection').style.display = 'none';
+            document.getElementById('grainSection').style.display = 'none';
+            document.getElementById('doorSection').style.display = 'none';
+            document.getElementById('currentTime').textContent = 'Non synchronisée';
+            
+            resetButtonStates();
+        }
+
+        function resetButtonStates() {
+            var buttons = ['grain-on-btn', 'grain-off-btn', 'grain-auto-btn', 'door-on-btn', 'door-off-btn', 'door-auto-btn'];
+            buttons.forEach(function(btnId) {
+                var btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.className = btn.className.replace(/btn-(active|inactive)[^\s]*/g, '');
+                }
+            });
+        }
+
+        function syncTime() {
+            if (!isConnected || !servicesReady) {
+                log("❌ Services pas encore prêts pour la synchronisation");
+                setTimeout(syncTime, 1000);
+                return;
+            }
+
+            var timestamp = Math.floor(Date.now() / 1000);
+            
+            var data = new Uint8Array([
+                6,
+                (timestamp >> 24) & 0xFF,
+                (timestamp >> 16) & 0xFF,
+                (timestamp >> 8) & 0xFF,
+                timestamp & 0xFF
+            ]);
+
+            log(`⏰ Synchronisation heure française: ${new Date().toLocaleString('fr-FR', {timeZone: 'Europe/Paris'})}`);
+            
+            ble.write(deviceId, serviceUUID, characteristicUUID, data.buffer, function() {
+                log("✅ Heure synchronisée avec succès");
+                document.getElementById('syncStatus').textContent = 'Synchronisée avec l\'ESP32';
+            }, function(error) {
+                log("❌ Erreur lors de la sync: " + error);
+                document.getElementById('syncStatus').textContent = 'Erreur de synchronisation';
+                setTimeout(syncTime, 2000);
+            });
+        }
+
+        function onTimeUpdate(data) {
+            var timeStr = String.fromCharCode.apply(null, new Uint8Array(data));
+            document.getElementById('currentTime').textContent = timeStr;
+            if (timeStr !== "Non sync" && timeStr !== "Non synchronisée") {
+                document.getElementById('syncStatus').textContent = 'Heure synchronisée';
+            }
+        }
+
+        function updateRelayStatus(relay, isOn, isManual = false) {
+            var statusEl = document.getElementById(`relay${relay}Status`);
+            var indicatorEl = document.getElementById(`relay${relay}Indicator`);
+            var modeEl = document.getElementById(`relay${relay}Mode`);
+            
+            statusEl.textContent = isOn ? 'ON' : 'OFF';
+            
+            if (isOn) {
+                indicatorEl.className = 'status-indicator status-on';
+            } else {
+                indicatorEl.className = 'status-indicator status-off';
+            }
+            
+            var prefix = relay === 1 ? 'grain' : 'door';
+            var onBtn = document.getElementById(`${prefix}-on-btn`);
+            var offBtn = document.getElementById(`${prefix}-off-btn`);
+            var autoBtn = document.getElementById(`${prefix}-auto-btn`);
+            
+            // Réinitialiser toutes les classes
+            onBtn.className = 'btn-on';
+            offBtn.className = 'btn-off';
+            autoBtn.className = 'btn-auto';
+            
+            // Mettre à jour l'état global
+            if (relay === 1) {
+                relay1State = isOn;
+                relay1ManualMode = isManual;
+                
+                if (relay1ManualMode) {
+                    modeEl.textContent = 'MANUEL';
+                    modeEl.className = 'mode-indicator mode-manual';
+                    
+                    if (isOn) {
+                        onBtn.className = 'btn-on btn-active-on';
+                        offBtn.className = 'btn-off btn-inactive';
+                    } else {
+                        onBtn.className = 'btn-on btn-inactive';
+                        offBtn.className = 'btn-off btn-active-off';
+                    }
+                    autoBtn.className = 'btn-auto btn-inactive';
+                } else {
+                    modeEl.textContent = 'AUTO';
+                    modeEl.className = 'mode-indicator mode-auto';
+                    
+                    autoBtn.className = 'btn-auto btn-active-auto';
+                    onBtn.className = 'btn-on btn-inactive';
+                    offBtn.className = 'btn-off btn-inactive';
+                }
+            } else {
+                relay2State = isOn;
+                relay2ManualMode = isManual;
+                
+                if (relay2ManualMode) {
+                    modeEl.textContent = 'MANUEL';
+                    modeEl.className = 'mode-indicator mode-manual';
+                    
+                    if (isOn) {
+                        onBtn.className = 'btn-on btn-active-on';
+                        offBtn.className = 'btn-off btn-inactive';
+                    } else {
+                        onBtn.className = 'btn-on btn-inactive';
+                        offBtn.className = 'btn-off btn-active-off';
+                    }
+                    autoBtn.className = 'btn-auto btn-inactive';
+                } else {
+                    modeEl.textContent = 'AUTO';
+                    modeEl.className = 'mode-indicator mode-auto';
+                    
+                    autoBtn.className = 'btn-auto btn-active-auto';
+                    onBtn.className = 'btn-on btn-inactive';
+                    offBtn.className = 'btn-off btn-inactive';
+                }
+            }
+            
+            log(`🔧 État relais ${relay}: ${isOn ? 'ON' : 'OFF'}, Mode: ${isManual ? 'Manuel' : 'Auto'}`);
+        }
+
+        function onRelay1TimeUpdate(data) {
+            var timeStr = String.fromCharCode.apply(null, new Uint8Array(data));
+            log(`📅 Grain reçu: ${timeStr}`);
+            
+            var parts = timeStr.split(',');
+            if (parts.length >= 3) {
+                var startTime = parts[0];
+                var duration = parseInt(parts[1]) || 0;
+                var state = parts[2];
+                
+                var isOn = (state === 'ON');
+                var isManual = relay1ManualMode;
+                
+                updateRelayStatus(1, isOn, isManual);
+                
+                document.getElementById('relay1ActiveTime').innerHTML = 
+                    `⏰ ${startTime} pour ${Math.floor(duration/60)} minutes`;
+                
+                document.getElementById('startTime1').value = startTime;
+                document.getElementById('duration1').value = Math.floor(duration/60);
+                
+                validateTiming1();
+            }
+        }
+
+        function onRelay2TimeUpdate(data) {
+            var timeStr = String.fromCharCode.apply(null, new Uint8Array(data));
+            log(`📅 Porte reçu: ${timeStr}`);
+            
+            var parts = timeStr.split(',');
+            if (parts.length >= 3) {
+                var startTime = parts[0];
+                var stopTime = parts[1];
+                var state = parts[2];
+                
+                var isOn = (state === 'ON');
+                var isManual = relay2ManualMode;
+                
+                updateRelayStatus(2, isOn, isManual);
+                
+                document.getElementById('relay2ActiveTime').innerHTML = 
+                    `⏰ ${startTime} → ${stopTime}`;
+                
+                document.getElementById('startTime2').value = startTime;
+                document.getElementById('stopTime2').value = stopTime;
+                
+                validateTiming2();
+            }
+        }
+
+        function validateTiming1() {
+            var startTime = document.getElementById('startTime1').value;
+            var duration = parseInt(document.getElementById('duration1').value, 10);
+            var display = document.getElementById('timing1Validation');
+            
+            if (!startTime || isNaN(duration) || duration < 1 || duration > 360) {
+                display.innerHTML = '<span class="timing-error">⚠️ Veuillez entrer une heure et durée valides (1-360 min)</span>';
+                return false;
+            }
+            
+            var startParts = startTime.split(':').map(Number);
+            var startMinutes = startParts[0] * 60 + startParts[1];
+            var endMinutes = (startMinutes + duration) % 1440;
+            var endHour = Math.floor(endMinutes / 60);
+            var endMin = endMinutes % 60;
+            
+            display.innerHTML = `<span class="timing-valid">✅ Distribution: ${startTime} → ${endHour.toString().padStart(2,'0')}:${endMin.toString().padStart(2,'0')} (${duration} min)</span>`;
+            
+            updateNextAction();
+            return true;
+        }
+
+        function validateTiming2() {
+            var startTime = document.getElementById('startTime2').value;
+            var stopTime = document.getElementById('stopTime2').value;
+            var display = document.getElementById('timing2Validation');
+            
+            if (!startTime || !stopTime) {
+                display.innerHTML = '<span class="timing-error">⚠️ Veuillez entrer les heures d\'ouverture et fermeture</span>';
+                return false;
+            }
+            
+            display.innerHTML = `<span class="timing-valid">✅ Ouverture: ${startTime} → ${stopTime}</span>`;
+            updateNextAction();
+            return true;
+        }
+
+        function updateNextAction() {
+            var now = new Date();
+            var currentHour = now.getHours();
+            var currentMin = now.getMinutes();
+            var currentTime = currentHour * 60 + currentMin;
+            
+            // Grain
+            var startTime1 = document.getElementById('startTime1').value;
+            var duration1 = parseInt(document.getElementById('duration1').value, 10) || 0;
+            if (startTime1 && duration1 > 0) {
+                var parts1 = startTime1.split(':').map(Number);
+                var startMin1 = parts1[0] * 60 + parts1[1];
+                var endMin1 = (startMin1 + duration1) % 1440;
+                
+                var nextGrain = '';
+                if (currentTime < startMin1) {
+                    var diffMin = startMin1 - currentTime;
+                    nextGrain = `Distribution dans ${Math.floor(diffMin / 60)}h${(diffMin % 60).toString().padStart(2,'0')}min`;
+                } else if (currentTime >= startMin1 && currentTime < endMin1) {
+                    var remainingMin = endMin1 - currentTime;
+                    nextGrain = `🟢 DISTRIBUTION EN COURS (fin dans ${Math.floor(remainingMin / 60)}h${(remainingMin % 60).toString().padStart(2,'0')}min)`;
+                } else {
+                    var nextStart = startMin1 + 1440;
+                    var diffMin = nextStart - currentTime;
+                    nextGrain = `Prochaine distribution dans ${Math.floor(diffMin / 60)}h${(diffMin % 60).toString().padStart(2,'0')}min`;
+                }
+                document.getElementById('nextGrainAction').textContent = nextGrain;
+            }
+            
+            // Porte
+            var startTime2 = document.getElementById('startTime2').value;
+            var stopTime2 = document.getElementById('stopTime2').value;
+            if (startTime2 && stopTime2) {
+                var parts2Start = startTime2.split(':').map(Number);
+                var parts2Stop = stopTime2.split(':').map(Number);
+                var startMin2 = parts2Start[0] * 60 + parts2Start[1];
+                var stopMin2 = parts2Stop[0] * 60 + parts2Stop[1];
+                
+                var nextDoor = '';
+                if (startMin2 < stopMin2) {
+                    if (currentTime < startMin2) {
+                        var diffMin = startMin2 - currentTime;
+                        nextDoor = `Ouverture dans ${Math.floor(diffMin / 60)}h${(diffMin % 60).toString().padStart(2,'0')}min`;
+                    } else if (currentTime >= startMin2 && currentTime < stopMin2) {
+                        var remainingMin = stopMin2 - currentTime;
+                        nextDoor = `🟢 PORTE OUVERTE (fermeture dans ${Math.floor(remainingMin / 60)}h${(remainingMin % 60).toString().padStart(2,'0')}min)`;
+                    } else {
+                        var nextOpen = startMin2 + 1440;
+                        var diffMin = nextOpen - currentTime;
+                        nextDoor = `Prochaine ouverture dans ${Math.floor(diffMin / 60)}h${(diffMin % 60).toString().padStart(2,'0')}min`;
+                    }
+                } else {
+                    if (currentTime >= startMin2 || currentTime < stopMin2) {
+                        nextDoor = "🟢 PORTE OUVERTE";
+                    } else {
+                        var diffMin = startMin2 - currentTime;
+                        nextDoor = `Ouverture dans ${Math.floor(diffMin / 60)}h${(diffMin % 60).toString().padStart(2,'0')}min`;
+                    }
+                }
+                document.getElementById('nextDoorAction').textContent = nextDoor;
+            }
+        }
+
+        function controlRelay(relay, state) {
+            if (!isConnected || !servicesReady) {
+                log("❌ Services pas encore prêts");
+                return;
+            }
+
+            var data = new Uint8Array([relay, state ? 1 : 0]);
+            var relayName = relay === 1 ? 'Distribution grain' : 'Ouverture porte';
+            log(`🔌 ${relayName}: ${state ? 'ON' : 'OFF'} (manuel)`);
+            
+            if (relay === 1) {
+                relay1ManualMode = true;
+            } else {
+                relay2ManualMode = true;
+            }
+            
+            ble.write(deviceId, serviceUUID, characteristicUUID, data.buffer, function() {
+                log(`✅ Commande envoyée: ${relayName}`);
+                updateRelayStatus(relay, state, true);
+            }, function(error) {
+                log(`❌ Erreur commande ${relayName}: ${error}`);
+                if (relay === 1) {
+                    relay1ManualMode = false;
+                } else {
+                    relay2ManualMode = false;
+                }
+            });
+        }
+
+        function setAutoMode(relay) {
+            if (!isConnected || !servicesReady) {
+                log("❌ Services pas encore prêts");
+                return;
+            }
+
+            var data = new Uint8Array([5, relay]);
+            var relayName = relay === 1 ? 'Distribution grain' : 'Ouverture porte';
+            log(`🔄 ${relayName}: Mode automatique activé`);
+            
+            if (relay === 1) {
+                relay1ManualMode = false;
+            } else {
+                relay2ManualMode = false;
+            }
+            
+            ble.write(deviceId, serviceUUID, characteristicUUID, data.buffer, function() {
+                log(`✅ Mode auto activé: ${relayName}`);
+                var currentState = relay === 1 ? relay1State : relay2State;
+                updateRelayStatus(relay, currentState, false);
+            }, function(error) {
+                log(`❌ Erreur mode auto: ${error}`);
+                if (relay === 1) {
+                    relay1ManualMode = true;
+                } else {
+                    relay2ManualMode = true;
+                }
+            });
+        }
+
+        function programRelay1() {
+            if (!isConnected || !servicesReady) {
+                log("❌ Services pas encore prêts");
+                return;
+            }
+
+            if (!validateTiming1()) {
+                return;
+            }
+
+            var startTime = document.getElementById('startTime1').value;
+            var duration = parseInt(document.getElementById('duration1').value, 10);
+
+            var times = startTime.split(':').map(Number);
+            
+            var data = new Uint8Array([
+                3, 
+                times[0], 
+                times[1], 
+                0,
+                (duration >> 8) & 0xFF,
+                duration & 0xFF
+            ]);
+            
+            log(`📅 Programmation grain: ${startTime} pour ${duration}min`);
+            
+            relay1ManualMode = false;
+            
+            ble.write(deviceId, serviceUUID, characteristicUUID, data.buffer, function() {
+                log("✅ Distribution grain programmée");
+                validateTiming1();
+                updateRelayStatus(1, relay1State, false);
+            }, function(error) {
+                log(`❌ Erreur programmation grain: ${error}`);
+            });
+        }
+
+        function programRelay2() {
+            if (!isConnected || !servicesReady) {
+                log("❌ Services pas encore prêts");
+                return;
+            }
+
+            if (!validateTiming2()) {
+                return;
+            }
+
+            var startTime = document.getElementById('startTime2').value;
+            var stopTime = document.getElementById('stopTime2').value;
+
+            var startTimes = startTime.split(':').map(Number);
+            var stopTimes = stopTime.split(':').map(Number);
+            
+            var data = new Uint8Array([
+                4, 
+                startTimes[0], 
+                startTimes[1], 
+                0,
+                stopTimes[0],
+                stopTimes[1],
+                0
+            ]);
+            
+            log(`📅 Programmation porte: ${startTime} → ${stopTime}`);
+            
+            relay2ManualMode = false;
+            
+            ble.write(deviceId, serviceUUID, characteristicUUID, data.buffer, function() {
+                log("✅ Ouverture porte programmée");
+                validateTiming2();
+                updateRelayStatus(2, relay2State, false);
+            }, function(error) {
+                log(`❌ Erreur programmation porte: ${error}`);
+            });
+        }
+
+        // Actions rapides
+        function emergencyStop() {
+            if (!isConnected || !servicesReady) {
+                log("❌ Non connecté à l'ESP32");
+                return;
+            }
+            
+            log("🛑 ARRÊT D'URGENCE - Désactivation de tous les systèmes");
+            
+            // Éteindre les deux relais
+            controlRelay(1, false);
+            setTimeout(function() {
+                controlRelay(2, false);
+            }, 200);
+        }
+
+        function feedNow() {
+            if (!isConnected || !servicesReady) {
+                log("❌ Non connecté à l'ESP32");
+                return;
+            }
+            
+            log("🌾 Distribution immédiate activée");
+            controlRelay(1, true);
+        }
+
+        function openDoorNow() {
+            if (!isConnected || !servicesReady) {
+                log("❌ Non connecté à l'ESP32");
+                return;
+            }
+            
+            log("🚪 Ouverture manuelle de la porte");
+            controlRelay(2, true);
+        }
+
+        function closeDoorNow() {
+            if (!isConnected || !servicesReady) {
+                log("❌ Non connecté à l'ESP32");
+                return;
+            }
+            
+            log("🔒 Fermeture manuelle de la porte");
+            controlRelay(2, false);
+        }
+
+        // Gestionnaires d'événements pour la validation en temps réel
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('startTime1').addEventListener('input', validateTiming1);
+            document.getElementById('duration1').addEventListener('input', validateTiming1);
+            document.getElementById('startTime2').addEventListener('input', validateTiming2);
+            document.getElementById('stopTime2').addEventListener('input', validateTiming2);
+        });
+
+        // Affichage de l'heure locale quand non connecté
+        setInterval(function() {
+            if (!isConnected) {
+                var now = new Date();
+                var currentTimeStr = now.toLocaleString('fr-FR', {
+                    timeZone: 'Europe/Paris',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                document.getElementById('currentTime').textContent = currentTimeStr + ' (Local)';
+                document.getElementById('syncStatus').textContent = 'Heure locale (non synchronisée)';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
