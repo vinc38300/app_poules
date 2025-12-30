@@ -278,6 +278,6 @@ Pour toute question ou problème :
 ---
 
 **Version actuelle** : 4.0  
-**Dernière mise à jour** : Décembre 2024  
+**Dernière mise à jour** : Décembre 2025
 **ESP32 SDK** : Compatible v2.0+  
 **Cordova** : Compatible v12.0+
