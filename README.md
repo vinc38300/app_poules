@@ -252,25 +252,6 @@ poulailler-esp32/
   - Chiffrement des communications
   - Validation des commandes
 
-## 📝 Licence
-
-Ce projet est distribué sous licence **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)**.
-
-[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-
-Vous êtes libre de :
-- **Partager** — copier, distribuer et communiquer le matériel par tous moyens et sous tous formats
-- **Adapter** — remixer, transformer et créer à partir du matériel
-
-Selon les conditions suivantes :
-- **Attribution** — Vous devez créditer l'œuvre, intégrer un lien vers la licence et indiquer si des modifications ont été effectuées
-- **Pas d'Utilisation Commerciale** — Vous n'êtes pas autorisé à faire un usage commercial de cette œuvre, tout ou partie du matériel la composant
-- **Partage dans les Mêmes Conditions** — Dans le cas où vous adaptez, transformez ou créez à partir du matériel, vous devez diffuser vos contributions sous la même licence que l'original
-
-⚠️ **Usage non-commercial uniquement** - Pour toute utilisation commerciale, veuillez nous contacter.
-
-Voir le fichier [LICENSE](LICENSE) pour plus de détails ou consultez [creativecommons.org/licenses/by-nc-sa/4.0/](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-
 ## 👥 Contribution
 
 Les contributions sont les bienvenues ! N'hésitez pas à :
