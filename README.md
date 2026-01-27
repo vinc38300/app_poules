@@ -7,7 +7,7 @@ Système automatisé de gestion de poulailler basé sur ESP32 avec contrôle via
 ### Contrôle Automatique
 - **Distribution de grain** : Programmation avec heure de début et durée fixe
 - **Ouverture/fermeture de porte** : Programmation avec plage horaire (début → fin)
-- **Synchronisation horaire française** : Gestion automatique heure d'hiver/été
+- **Synchronisation horaire français** : Gestion automatique heure d'hiver/été
 - **Mode automatique/manuel** : Basculement entre contrôle programmé et manuel
 
 ### Statistiques et Suivi
