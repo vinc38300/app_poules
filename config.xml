@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="com.example.app_poules" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>app_poules</name>
+    <name>Poulailler</name>
     <description>Sample Apache Cordova App</description>
     <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
         Apache Cordova Team
@@ -8,4 +8,12 @@
     <content src="index.html" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
+    <platform name="android">
+        <icon density="ldpi" src="res/android/ldpi.png" background="res/android/ldpi-background.png" foreground="res/android/ldpi-foreground.png" />
+        <icon density="mdpi" src="res/android/mdpi.png" background="res/android/mdpi-background.png" foreground="res/android/mdpi-foreground.png" />
+        <icon density="hdpi" src="res/android/hdpi.png" background="res/android/hdpi-background.png" foreground="res/android/hdpi-foreground.png" />
+        <icon density="xhdpi" src="res/android/xhdpi.png" background="res/android/xhdpi-background.png" foreground="res/android/xhdpi-foreground.png" />
+        <icon density="xxhdpi" src="res/android/xxhdpi.png" background="res/android/xxhdpi-background.png" foreground="res/android/xxhdpi-foreground.png" />
+        <icon density="xxxhdpi" src="res/android/xxxhdpi.png" background="res/android/xxxhdpi-background.png" foreground="res/android/xxxhdpi-foreground.png" />
+    </platform>
 </widget>

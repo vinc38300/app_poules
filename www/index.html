@@ -271,6 +271,8 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
+        .valid-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.15); font-size:14px; }
+        .valid-warn { color:#ffb300; font-weight:bold; margin:6px 0; }
         .timing-valid {
             color: #4CAF50;
             font-weight: bold;
@@ -497,7 +499,7 @@
                 </div>
                 <div class="input-group">
                     <label>Durée (minutes):</label>
-                    <input type="number" id="duration1" placeholder="Durée en minutes" min="1" max="360" value="20">
+                    <input type="number" id="duration1" placeholder="Durée en minutes" min="1" max="360" value="30">
                 </div>
             </div>
             
@@ -512,6 +514,12 @@
             <div class="status-display">
                 <strong>Programmation active:</strong><br>
                 <span id="relay1ActiveTime">Non définie</span>
+            </div>
+
+            <div class="status-display">
+                <strong>✅ Validation des distributions (7 jours):</strong>
+                <div id="validWarn" class="valid-warn" style="display:none;">⚠️ Heure de l'ESP32 non resynchronisée depuis son redémarrage</div>
+                <div id="validList">En attente des données...</div>
             </div>
         </div>
         
@@ -582,6 +590,7 @@
         var timeCharacteristicUUID = "123e4567-e89b-12d3-a456-426614174000";
         var relay1TimeUUID = "5a786b5e-1234-5678-9abc-def012345678";
         var relay2TimeUUID = "6b897c6f-2345-6789-abcd-ef0123456789";
+        var validUUID = "9a8f7e6d-5c4b-4a39-8271-605f4e3d2c1b";
 
         // Variables pour suivre l'état des modes et des relais
         var relay1ManualMode = false;
@@ -644,6 +653,7 @@
             document.getElementById('connectBtn').style.display = 'none';
             document.getElementById('syncBtn').style.display = 'inline-block';
 
+            if (ble.requestMtu) { ble.requestMtu(deviceId, 185, function() { log("📶 MTU 185"); }, function() {}); }
             log("⏳ Attente de découverte des services (2s)...");
             setTimeout(function() {
                 setupNotifications();
@@ -653,7 +663,7 @@
         function setupNotifications() {
             log("🔧 Configuration des notifications...");
             var successCount = 0;
-            var expectedCount = 3;
+            var expectedCount = 4;
             
             function checkAllReady() {
                 successCount++;
@@ -698,6 +708,13 @@
                 });
                 checkAllReady();
             }, 500);
+
+            setTimeout(function() {
+                ble.startNotification(deviceId, serviceUUID, validUUID, onValidUpdate, function(error) {
+                    log("⚠️ Erreur notifications validation: " + error);
+                });
+                checkAllReady();
+            }, 700);
         }
 
         function requestCurrentStates() {
@@ -711,6 +728,12 @@
                 log("❌ Erreur lecture état grain: " + error);
             });
             
+            setTimeout(function() {
+                ble.read(deviceId, serviceUUID, validUUID, onValidUpdate, function(error) {
+                    log("❌ Erreur lecture validation: " + error);
+                });
+            }, 400);
+
             setTimeout(function() {
                 ble.read(deviceId, serviceUUID, relay2TimeUUID, function(data) {
                     onRelay2TimeUpdate(data);
@@ -908,6 +931,27 @@
                 
                 validateTiming2();
             }
+        }
+
+        // Format reçu: "T<0|1>|joursAvant,statut,prévu,fait;..."  statut: 1=en cours 2=ok 3=interrompue 4=manquée
+        function onValidUpdate(data) {
+            var str = String.fromCharCode.apply(null, new Uint8Array(data));
+            var halves = str.split('|');
+            document.getElementById('validWarn').style.display = (halves[0] === 'T0') ? 'block' : 'none';
+            var byAgo = {};
+            (halves[1] || '').split(';').forEach(function(item) {
+                var f = item.split(',').map(Number);
+                if (f.length === 4 && !isNaN(f[0])) byAgo[f[0]] = f;
+            });
+            var labels = {1: '⏳ En cours', 2: '✅ Effectuée', 3: '⚠️ Interrompue', 4: '❌ Manquée'};
+            var html = '';
+            for (var d = 0; d < 7; d++) {
+                var day = new Date(Date.now() - d * 86400000).toLocaleDateString('fr-FR', {weekday: 'short', day: 'numeric'});
+                var f = byAgo[d];
+                var txt = f ? labels[f[1]] + (f[1] === 2 || f[1] === 3 ? ' (' + f[3] + '/' + f[2] + ' min)' : '') : '—';
+                html += '<div class="valid-row"><span>' + day + '</span><span>' + txt + '</span></div>';
+            }
+            document.getElementById('validList').innerHTML = html;
         }
 
         function validateTiming1() {
